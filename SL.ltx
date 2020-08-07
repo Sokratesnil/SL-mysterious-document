@@ -1,0 +1,188 @@
+\documentclass[a4paper, 10pt]{ltjsarticle}
+\usepackage{mysettings}
+\title{分離論理入門のようなもの}
+\author{そくらてす}
+\date{\today 更新}
+
+\begin{document}
+\maketitle
+
+ \section{分離論理とは}
+
+ 分離論理(Separation Logic)とは述語論理をヒープ領域(平たく言えば"メモリ")に言及できるように拡張した論理体系である.
+
+ 形式的には通常の述語論理(一階述語論理など)にメモリの状態を記述できるような述語記号とそれらを結合するための分離結合子\(*\)などを付け加えたものと捉えられる.
+
+ プログラム検証の文脈で捉えると, 分離論理は「ほど良い抽象性」を持ったヒープの状態の記法と言うことも出来る\footnote{応用上重要視されているSymbolic Heap と呼ばれる分離論理の部分体系は、通常使われるようなメモリの使い方をある程度カバーしつつ恒真性が決定可能になる体系である。執筆時間の都合でSymbolic Heap についてこの文書ではこれ以上詳しく扱わない}.
+
+ この文書は一階述語論理の完全性定理くらいの内容を理解していて, かつC言語のポインタ概念を知っている人に対して, 分離論理のさわりを解説するためのものである. 読者の参考になれば幸いである. 
+
+ \section{分離論理の言語とその意味論}
+ この節では, 分離論理の言語とその意味論を定義する. 
+ 
+ 今回の言語は分離論理の基礎概念の理解のために必要な部分だけを取り出したものである. 
+ 
+ %言語の定義
+ 
+  \begin{definition}[分離論理の言語]
+   分離論理の言語を次のように定義する\footnote{この記法に慣れていない場合は「BNF記法」でぐぐれ. }. 
+   \begin{align*}
+    &\text{Variables(変数記号)}  &x &\in \mathVar \\
+    &\text{Terms(項)}  &t &::= \mathvalnil \mathrelbar x \\
+    &\text{Atomic Formulas(原子論理式)}  &\alpha &::= \mathemp \mathrelbar  t = t  \mathrelbar t \mathpointer{1} \left\langle t  \right\rangle \mathrelbar  t \mathpointer{2} \left\langle t, t  \right\rangle \mathrelbar\mathprls{t}{t} \mathrelbar \mathprtree{t}  \\
+    &\text{Formulas(論理式)}  &\varphi &::= \alpha \mathrelbar \lnot \varphi \mathrelbar \varphi \lor \varphi \mathrelbar \exists x.\varphi \mathrelbar \varphi * \varphi \mathrelbar \varphi \mathmagicwand \varphi \\
+   \end{align*}
+  \end{definition} 
+
+  ヒープ領域を表す記号が増えている以外は一階述語論理とほぼ同様である. $\mathpointer{i}$ はポインタを表現する述語記号である. また, $\mathprls{-}{-}, \mathprtree{-}$はリスト構造の存在と二分木構造の存在を表す述語記号である. 
+
+  一階述語論理との最大の違いは分離結合子(separating conjunction)$*$と魔法の杖(magic wand またはseparating implication)$\mathmagicwand$である. 
+分離結合子は異なるヒープ領域の状態の結合を表している. また, 魔法の杖は前件部に書かれたヒープ領域の状態を結合すると後件が成り立つことを表している\footnote{ここで書かれた直感的な意味を読んで理解できなくても心配することはない. 私自身, 分離論理の勉強を始めたばかりの頃に, このように説明をされても正直よくわからなかった. 分離論理の解釈の定義を読んだ後に戻って読むと意味がわかると思う. }. 
+
+次に分離論理の意味論を定義する. 
+
+ %意味論の定義
+
+ まず, 一階述語論理の構造(structure)と値割り当て(valuation)にあたるものを定義する. %分離論理の構造に当たるものに一般で通じるような名前はついていない\footnote{分離論理のモチベーションがプログラム検証にあるため, 一階述語論理のように超準モデルを考えるなどのことをしないためだと考えられる.}が, 便宜上これを「分離論理の構造」と呼ぶことにする. 
+
+ \begin{definition}[分離論理の構造(Heap Memory Model)] 
+  次の条件を満たす4つ組$\left(\mathVal, \mathLoc, s, h \right)$を分離論理の構造と呼ぶ. 
+  \begin{itemize}
+   \item $\mathVal$, $\mathLoc$ は空でない集合.
+   %\item $\mathLoc \subset \mathVal$. 
+   \item $ nil \in \mathVal \setminus \mathLoc$ .
+   \item $s:\mathVar \to \mathVal $.
+   \item $h:\mathLoc \mathfinparmap \mathVal \cup \mathVal^2$  ($h$は有限部分関数).
+  \end{itemize}
+ \end{definition} 
+ 
+$\mathVal$ は変数記号の取り得る範囲を表す. $\mathLoc$はヒープ領域の番地(Adress)の集合である. $s$は変数記号に対する値の割り当てである. $h$はヒープ領域を表す有限部分関数である. 
+
+本文書では$\mathVal$や$\mathLoc$が具体的にどのような集合であるかは特に問題にはならない\footnote{むしろ, $\mathVal$や$\mathLoc$の具体的な中身が問題となる場面をわたしは知らない. }. ここ以降では
+\begin{align*}
+ \mathLoc &:= \mathbb{Z}^{+} \\
+ \mathVal &:= \mathbb{Z} \cup \left\{ nil \right\}
+\end{align*} 
+と思っておけばよい(ただし, $\mathbb{Z}$は整数全体の集合, $\mathbb{Z}^{+}$は正の整数全体の集合). 
+
+さて, 分離論理の論理式の解釈を定義しよう. 
+
+\begin{definition}[分離論理の論理式の解釈]
+構造 $\left(\mathVal, \mathLoc, s, h \right)$,  論理式$\varphi$ について,  
+\[s, h \models \varphi\]
+という関係を次のように帰納的に定める.
+
+ 以下 $\mathLdoubleko x \mathRdoubleko _{s} = s\left( x \right), \mathLdoubleko \mathsf{nil} \mathRdoubleko _{s} = \mathvalnil $とする.
+ 
+ \begin{align*}
+  s, h \models t_1 = t_2 &\mathdefiffarrow  \mathLdoubleko t_1 \mathRdoubleko_{s} = \mathLdoubleko t_2 \mathRdoubleko _{s} &\text{(if $\varphi \equiv t_1 =t_2$)}\\
+  s, h \models \lnot \psi &\mathdefiffarrow s, h \not \models \varphi &\text{(if $\varphi \equiv  \lnot \psi$)}\\
+  s, h \models \psi\lor\vartheta &\mathdefiffarrow s, h \models \psi \,\text{or}\,  s, h \models \vartheta  &\text{(if $\varphi \equiv \psi\lor\vartheta$)} \\
+  s, h \models \exists x.\psi &\mathdefiffarrow 
+  \text{There exists $v \in \mathVal$ such that  } 
+  s\left[\mathsf{x} \mapsto v\right], h \models \psi  &\text{(if $\varphi \equiv \exists x.\psi$)} \\
+%%%%%%
+  s, h \models \mathemp &\mathdefiffarrow \mathdom{h} = \emptyset  &\text{(if $\varphi \equiv \mathemp$)}\\
+  s, h \models t_0 \mathpointer{1} \left\langle t_1 \right\rangle &\mathdefiffarrow \mathdom{h} = \left\{ \mathLdoubleko t_0 \mathRdoubleko _{s}  \right\}, \mathop{h}\left(\mathLdoubleko t_0 \mathRdoubleko _{s}\right) = \mathLdoubleko t_1 \mathRdoubleko _{s} &\text{(if $\varphi \equiv t_0 \mathpointer{1} \left\langle t_1 \right\rangle $)} \\
+  s, h \models t_0 \mathpointer{2} \left\langle t_1 , t_2 \right\rangle &\mathdefiffarrow \mathdom{h} = \left\{ \mathLdoubleko t_0 \mathRdoubleko _{s}  \right\}, \mathop{h}\left( \mathLdoubleko t_0 \mathRdoubleko _{s} \right)  = \left(\mathLdoubleko t_1 \mathRdoubleko _{s}, \mathLdoubleko t_2 \mathRdoubleko _{s}\right) &\text{(if $\varphi \equiv t_0 \mathpointer{2} \left\langle t_1 , t_2 \right\rangle $)}\\
+%%%%%%
+  s, h \models \psi * \vartheta &\mathdefiffarrow \text{There exists } h_1 \perp h_2 \text{ where } 
+  h = h_1 * h_2, \ 
+  s, h_1 \models \psi \text{ and }
+  s, h_2 \models \vartheta &\text{(if $\varphi \equiv \psi * \vartheta$)}\\ 
+  s, h \models \psi \mathmagicwand \vartheta &\mathdefiffarrow \text{ For all } h' \perp h,  
+  s, h'  \models \psi \text{ implies } s, h * h' \models \vartheta &\text{(if $\varphi \equiv \psi \mathmagicwand \vartheta$)} \\
+%%%%%%
+  s, h \models \mathprls{t_1}{t_2} &\mathdefiffarrow s, h \models \mathemp \text{ or there esists $v \in \mathVal$ such that } & \\
+  &\phantom{\mathdefiffarrow} s\left[x \mapsto v\right], h \models t_1 \mathpointer{1} \left\langle x \right\rangle * \mathprls{x}{t_2} \text{ where $x$ is fresh} &\text{(if $\varphi \equiv \mathprls{t_1}{t_2} $)}\\
+%%%%%%
+  s, h \models \mathprtree{t_1} &\mathdefiffarrow s, h \models \mathemp \text{ or there esists $v_1, v_2 \in \mathVal$ such that } & \\
+  &\phantom{\mathdefiffarrow} s\left[x \mapsto v_1, y \mapsto v_2 \right], h \models t_1 \mathpointer{2} \left\langle x , y \right\rangle * \mathprtree{x} * \mathprtree{y} \text{ where $x, y$ are fresh} &\text{(if $\varphi \equiv \mathprtree{t_1} $)}\\
+ \end{align*}
+\end{definition}
+
+分離論理の論理式の解釈のうち, 最初の4つは一階述語論理の論理式の解釈と同様である. 
+
+$s, h \models \mathemp$ の定義は$\mathemp$がヒープ領域のすべてのノードが空であるということに対応していることを表している. 
+
+若干誤解が起きそうなのが, $s, h \models t_0 \mathpointer{1} \left\langle t_1 \right\rangle$ と $s, h \models t_0 \mathpointer{2} \left\langle t_1 , t_2 \right\rangle$ の定義である. 
+この定義では, $t_0 \mathpointer{1} \left\langle t_1 \right\rangle$ の意味は``Adress $\mathLdoubleko t_0 \mathRdoubleko _{s}$に\emph{だけ}値が入っており, その値が$\mathLdoubleko t_1 \mathRdoubleko _{s}$である''と言っている. $s, h \models t_0 \mathpointer{2} \left\langle t_1 , t_2 \right\rangle$ についても同様である. 
+
+一階述語論理における$P\left(\mathvect{c}\right)$の解釈の定義が``$P$の表現する集合に$\mathvect{c}$が表しているモノが属している''というものであったことに比べると, \emph{だけ} という解釈の定義のおかげで分離論理のメモリに対する表現力は格段に強くなっている. では, $\mathdom{h} \supset \left\{ \mathLdoubleko t_0 \mathRdoubleko _{s}  \right\}, \mathop{h}\left(\mathLdoubleko t_0 \mathRdoubleko _{s}\right) = \mathLdoubleko t_1 \mathRdoubleko _{s}$ という状況は表現できるのだろうか? 少し考えればわかるが$\lor, \lnot, \exists$などを組合せるだけではそのような状況は表現できない\footnote{はず. 少なくとも私は思い付かなかった. }. その鍵は分離結合子$*$が握っている.
+
+$s, h \models \psi * \vartheta$ の定義は, ヒープ領域が$\psi$で表現できる部分と$\vartheta$で表現できる部分に``分離''できることを表している. 
+これを使うと $\mathdom{h} \supset \left\{ \mathLdoubleko t_0 \mathRdoubleko _{s}  \right\}, \mathop{h}\left(\mathLdoubleko t_0 \mathRdoubleko _{s}\right) = \mathLdoubleko t_1 \mathRdoubleko _{s}$は$t_0 \mathpointer{1} \left\langle t_1 \right\rangle * \mathrm{True}$で表現ができる(ただし, $\mathrm{True}$は恒真な式).
+
+$s, h \models \psi \mathmagicwand \vartheta$ の定義をみるだけでは$\mathmagicwand$ の存在意義が分からないと思う. この$\mathmagicwand$ の意義はentailment $\varphi * \psi \vdash \vartheta $を考えることで分かる. 
+
+$\varphi \vdash \psi$という記号列をentailment という(ただし$\varphi, \psi$は分離論理の論理式である). 任意の分離論理の構造に対して``$s, h \models \varphi$ ならば $s, h \models \psi$''が成り立つとき, entailment $\varphi \vdash \psi$ は真であるという. 
+
+さて, $\varphi * \psi \vdash \vartheta $が真であるとき, $\varphi \vdash \psi \mathmagicwand \vartheta $は真であり, またその逆も成り立つ(要証明). このことをふまえると$\mathmagicwand$ は$*$の``双対''と捉えることができる. 
+
+最後に$\mathprls{-}{-}$と$\mathprtree{-}$はそれぞれヒープ領域におけるリスト構造の存在と二分木構造の存在を表す述語である. $\mathprls{-}{-}$は第一引数で始まり, 第二引数で終わるようなリストが存在することを帰納的に定義している\footnote{もしかすると, 人によってはこの定義に違和感を持つかもしれない. $nil$で終わるもののみを``リスト''とする定義に慣れている方である. これは, たとえば「$x_1$から始まり, 途中で$x_2$が出現し, 最後に$nil$で終わる」というようなリストを表現したいときがある. このとき, ここでの定義を採用しておくと$\mathprls{x_1}{x_2}*\mathprls{x_2}{\mathvalnil}$とそのリストを表現することができる. }. 同様に$\mathprtree{-}$は引数から始まる二分木構造の存在を示している. 
+
+ \section{分離論理の簡単な応用}
+ この節では分離論理の簡単な応用として, 簡単なプログラムの部分正当性を証明する. 論理的にガチガチに固めて議論するとかえって分かりにくくなると思うので, ここから先はかなりラフに議論をしていく. 
+
+ \subsection{正しいプログラムとは}
+
+ 突然だが, \textgt{正しいプログラム}とは何かということを考えよう.  
+
+ プログラムを実際に書く時に必ず「仕様」というものを何らかの形で決める. \textgt{仕様}とは「そのプログラムにどのようなことをして欲しいか」を何かの形で決めたものである. プログラムが正しいというからには仕様を満たしていることが必要である\footnote{プログラムの仕様がそのプログラムの要件を満たしているかどうかという難しい問題もあるが, ここでは一度置いておいておく. }.
+ 
+ 書いたプログラムが仕様を満たしているかを確かめたいとき, 普通はいくつかの想定される入力を実際に入力してみて想定される答えを返すかどうかを試してみる. 想定される入力の種類がそれほど多くなければ, すべてのパターンを試すこともできるだろうが, 普通は人間の寿命の間ですべての入力を確かめられることはマレである. 無限に思えるような膨大な入力に対しても``想定されている答え''を返してくれることを保証するにはどうすれば良いのか? 
+人類の持っている武器で適切なものが一つある. 数学である. 
+
+数学は主に無限(や有限ではあるが人類には無限に感じられるようなもの)を扱かう学問なうえ, この世で最も「正しい」学問である\footnote{この一文だけでいろんな人に刺されそう. }. 数学にプログラムが仕様どおりに書けていることを保証(証明)してもらえれば世は事もなしである. 
+しかも, 数理論理学の知見では数学の証明は記号列の変形と見做せるので\footnote{ホンマか? }, その証明自体もプログラムで自動化できそうである. \textgt{プログラム検証}という分野の背景はこのようなものである. 
+
+さて, 以上のはなしをふまえて, 次の条件を満たすものをこの文書では「正しいプログラム」と呼ぶことにする.
+ 
+ \begin{itemize}
+  \item プログラムが停止するとき, 想定している計算結果を返す(部分正当性)
+ 	\begin{itemize}
+ 	 \item 別の言い方をすると仕様書の通りに動く
+ 	\end{itemize}
+  \item いかなる入力に対しても停止する(停止性)
+ 	\begin{itemize}
+ 	 \item 入力によっては答えを返さずに永遠動き続けるということがない
+ 	\end{itemize}
+ \end{itemize}
+
+ % そもそも仕様書の通りに動いたからといって良いプログラムとは限らない\footnote{仕様がゴミというのはよくあること. }が
+
+二番めについては一般的に判定をするためのアルゴリズムがないことが知られている(停止性の決定不能性)\footnote{この概念はすごく誤解を招くことでも有名である. 正直わたしも正しく理解できているか不安である. }. こちらの問題も大事ではあるが, 今回特に問題にするのは一番目の「部分正当性」についてである. 
+
+「部分正当性」の問題を扱うにあたって重要な役割りを果たす道具のひとつがHoare Triple である. 
+
+\begin{definition}[Hoare Triple]
+ $P, Q$を(何らかの論理体系の)論理式, $C$ を(何かしらのプログラム言語で書かれた)プログラムとする. 記号列
+\[ P \left\{C\right\}Q \]
+をHoare Triple と言い, P をこのHoare Triple の事前条件(precondition), Qを事後条件(postcondition)という. 
+\end{definition}
+
+気持ちとしては, 「$P$という条件が成り立っているときにプログラム$C$を動かしたら$Q$が成り立つようになる」というのがHoare Triple の意味するところである. このHoare Triple が
+
+
+
+% そのため, 与えられたプログラムが「正しいプログラム」であるかどうかを判定することは一般的にはできない. しかし, ここでいう「一般的に」というのは「すべてのプログラムの停止性を判定できない」ということを意味しない. たとえば, プログラム内にループなどが含まれていなければ, そのプログラムが停止することはすぐに分かる. 
+ % そこで, 分かる範囲で良いので「プログラムの正しさ」の判定を自動化できないかという発想が出て来る. 
+ 
+
+ % さて, 世の中にあるプログラムのには絶対に「正しく」なければならないものが多くある. 飛行機のエンジンの制御プログラムやATM の振込のプログラムなどである. これらのプログラムが正しく
+
+ % \subsection{Hoare 論理式}
+ % まず、この節で扱うプログラミング言語を定義する。
+ 
+ % プログラミング言語の定義
+ 
+ % \subsection{すごく簡単なプログラム}
+  
+  \subsection{死ぬほど単純なプログラム検証の例}
+
+ \begin{thebibliography}{9}
+  \bibitem{Brotherston2015} James Brotherston, `` An introduction to separation logic '', Logic Summer School, ANU, 7 December 2015.
+  \bibitem{Reynolds2002} John C. Reynolds, ``Separation Logic: A Logic for Shared Mutable Data Structure'', Proceedings of the 17th Anual IEEE Symposium on Logic in Computer Science, 2002.
+ \end{thebibliography} 
+
+\end{document}

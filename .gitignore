@@ -1,0 +1,10 @@
+*.dvi
+*.log
+_yatexrc
+*.ps1
+*.docx
+*.html
+*.bak
+*.gz
+*.fdb_latexmk
+*.fls

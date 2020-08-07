@@ -1,0 +1,100 @@
+%%%%%%% packages for writing support %%%%%
+\usepackage[l2tabu, orthodox]{nag}
+
+%%%%%%%% packages %%%%%%%%%%%
+
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{amsmath,amssymb}
+\usepackage{mathrsfs}
+\usepackage{ascmac}
+\usepackage{bm}
+\usepackage{bbm}
+\usepackage{multicol}
+\usepackage{tabularx}
+
+\usepackage[at]{easylist}
+
+%%%%%% BibTeX %%%%%%
+\bibliographystyle{plain}
+
+%%%%%%% theorems %%%%%%%%%%%%
+
+\usepackage{theorem}
+\theoremstyle{break}
+\theorembodyfont{\normalfont}
+\newtheorem{thm}{Theorem}% [section]
+\newtheorem{definition}[thm]{Definition}
+\newtheorem{ex}[thm]{Example}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{proof}{proof}
+\renewcommand{\theproof}{}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{rem}{Remark}
+\renewcommand{\therem}{}
+\newtheorem{note}{Note}
+\renewcommand{\thenote}{}
+\newcommand{\qed}{\hfill $\square$ \par}
+\newcommand{\QED}{\hfill $\blacksquare$ \par}
+
+\newtheorem{propnn}{Proposition}
+\renewcommand{\thepropnn}{}
+
+\usepackage{bussproofs}
+
+\usepackage{textcomp}
+
+
+%%%%%%%%%%%%%%%% new commands %%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\mathLdoubleko}{\mathopen{[\! [}}
+\newcommand{\mathRdoubleko}{\mathclose{]\!]}}
+\newcommand{\mathdefiffarrow}{\mathrel{:\Longleftrightarrow}}
+\newcommand{\mathdoubleko}[1]{\left[ \! \left[ #1 \right] \! \right] }
+
+\newcommand{\mathsetintension}[2]{\left\{ #1 \left| #2 \right. \right\} }
+\newcommand{\mathsetextension}[1]{\left\{ #1 \right\} }
+\newcommand{\mathrelbar}{\mathrel{|}}
+
+\newcommand{\mathFV}[1]{\mathop{\mathit{FV}}\left( #1 \right)}
+\newcommand{\mathVar}{\mathrm{Variables}}
+\newcommand{\mathFunc}{\mathrm{Functions}}
+\newcommand{\mathPred}{\mathrm{Predicates}}
+
+\newcommand{\mathVal}{\mathrm{Values}}
+\newcommand{\mathLoc}{\mathrm{Location}}
+
+\newcommand{\mathemp}{\mathrm{emp}}
+\newcommand{\mathvalnil}{\mathrm{nil}}
+\newcommand{\mathpointer}[1]{\mathrel{\overset{#1}{\mapsto}}}
+\newcommand{\mathprls}[2]{\mathop{\mathrm{ls}}\left(#1, #2\right)}
+\newcommand{\mathprtree}[1]{\mathop{\mathrm{tree}}\left(#1\right)}
+\newcommand{\mathmagicwand}{\mathrel{-\!\!*}}
+
+\newcommand{\mathfinparmap}{\mathrel{\overset{\mathrm{fin}}{\rightharpoonup}}}
+\newcommand{\mathdom}[1]{\mathop{\mathrm{dom}}\left(#1\right)}
+
+\newcommand{\mathmetasy}[1]{\mathbf{#1}}
+\newcommand{\mathvect}[1]{\mathbf{#1}}
+\newcommand{\mathdertree}[1]{\mathscr{#1}}
+\newcommand{\mathprooffig}[1]{\mathfrak{#1}}
+\newcommand{\mathmodel}[1]{\mathcal{#1}}
+
+\newcommand{\mathdepvar}[1]{\mathrel{\propto_{#1}}}
+\newcommand{\mathdepvarplus}[1]{\mathrel{{\propto_{#1}}^{+}}}
+\newcommand{\mathequivrel}[1]{\mathrel{\simeq_{#1}}}
+\newcommand{\mathdeprel}[1]{\mathrel{\sim_{#1}}}
+
+\usepackage{textcomp}
+
+\newcommand{\mathnat}{\mathbb{N}}
+
+\newcommand{\Alpha}{\mathrm{A}}
+\newcommand{\Tau}{\mathrm{T}}
+\newcommand{\Zeta}{\mathrm{Z}}
+
+%%%%%% bussproofs %%%%%%
+\renewcommand{\fCenter}{\mathrel{\vdash}}
+\newcommand{\rulename}[1]{\textsc{#1}}
+\newcommand{\rulenamelabel}[1]{\RightLabel{(\rulename{#1})}}
