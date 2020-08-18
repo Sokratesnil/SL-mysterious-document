@@ -1,3 +1,7 @@
 (setq tmp-section-table '(
 ("textgtemph")
+("mathdom")
+))
+(setq tmp-singlecmd-table '(
+("mathdash")
 ))
