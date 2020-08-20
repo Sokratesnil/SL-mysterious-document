@@ -267,6 +267,7 @@ $\mathprls{x_1}{x_2}*\mathprls{x_2}{\mathvalnil}$とそのリストを
   \item プログラムが停止するとき，想定している計算結果を返す(部分正当性)
  	\begin{itemize}
  	 \item 別の言い方をすると仕様書の通りに動く
+	       \footnote{わかる人向け:もはや修正が不可能なほど書いてから気が付いてしまったのだが、メモリ安全性は部分正当性に入れてしまって良かったのだろうか......?}
  	\end{itemize}
   \item いかなる入力に対しても停止する(停止性)
  	\begin{itemize}
@@ -297,7 +298,7 @@ $\mathprls{x_1}{x_2}*\mathprls{x_2}{\mathvalnil}$とそのリストを
  世は事もなしである．
  しかも，数理論理学の知見では数学の証明は
  記号列の変形と見做せるので
- \footnote{ホンマか? }，
+ \footnote{ホンマか?}，
  その証明自体もプログラムで自動化できてしまえば
  万々歳で，人類はバグという二字をこの世から
  亡くすことができ，平和が訪れる．
@@ -330,8 +331,9 @@ $\mathprls{x_1}{x_2}*\mathprls{x_2}{\mathvalnil}$とそのリストを
 
 \begin{definition}[Hoare Triple]
  $P，Q$を(何らかの論理体系の)論理式，
- $C$ を(何かしらのプログラム言語で書かれた)プログラムとする．記号列
-\[ P \left\{C\right\}Q \]
+ $C$ を(何かしらのプログラム言語で書かれた)
+ プログラムとする．記号列
+\[ \left\{P\right\} C \left\{Q\right\} \]
  をHoare Triple と言い，
  P をこのHoare Triple の事前条件(precondition)，
  Qを事後条件(postcondition)という．
@@ -345,9 +347,188 @@ $\mathprls{x_1}{x_2}*\mathprls{x_2}{\mathvalnil}$とそのリストを
 ``Hoare Triple の証明を考える''ことでプログラムが
 部分正当性を検証するアプローチがある．
 
-この
+このHoare Triple の事前条件と事後条件が
+分離論理の論理式で書かれたものを使った
+プログラム検証の例を見せる. 
   
   \subsection{死ぬほど単純なプログラム検証の例}
+  本来であれば、検証するためのプログラムの定義を
+  書かなければならない所だが、
+  そこまでやるのはしんどいのでC言語風の疑似コード
+  で書かれた関数についてプログラム検証（のようなもの）
+  を行ってみせ雰囲気を伝えることにする。
+
+  次のような関数$\mathprogramsy{dells(*x)}$
+  について考える。
+  \begin{align*}
+    % &  \{\objsym{tree} \left( x \right)\}}\\
+    & \mathprogramsy{dells(*x)} \{  \\
+      &\quad \mathprogramsy{if\left(*x=NULL\right)\ return\ 0;} % \onslide<2->{\structure{\{\objsym{emp}\}}}
+   \\
+      &\quad   \mathprogramsy{else \{}  % \onslide<3->{\structure{\{ \mathprogramsy{x} \mapsto \left(y, z\right) * \objsym{tree}\left(y\right) * \objsym{tree} \left(z\right)\}}}
+   \\
+      &\qquad  \mathprogramsy{n := x.next;}  % \onslide<4->{\structure{\{ \mathprogramsy{x} \mapsto \left(\mathprogramsy{l}, \mathprogramsy{r}\right) * \objsym{tree} \left( \mathprogramsy{l} \right) * \objsym{tree} \left( \mathprogramsy{r} \right)\}}} 
+   \\
+      &\qquad  \mathprogramsy{dells(n);}  % \onslide<5->{\structure{\{ \mathprogramsy{x} \mapsto \left(\mathprogramsy{l}, \mathprogramsy{r}\right) * \objsym{emp} * \objsym{tree}\left( \mathprogramsy{r} \right)\} }}
+   \\
+      &\qquad  \mathprogramsy{free(x);}   % \onslide<7->{\structure{\{\objsym{emp} * \objsym{emp} * \objsym{emp}\}}}
+   \\
+      &\quad \mathprogramsy{\}} % \onslide<8->{\structure{\{\objsym{emp}\}}}
+   \\
+      &\mathprogramsy{\}} % \alert{\{\objsym{emp}\}}
+  \end{align*}
+
+  これは$\mathprogramsy{x}$から始まるリストを削除する
+  関数である。
+  このことをHoare Triple を使って表すと次のようになる。
+
+    \begin{align*}
+     &  \left\{\mathprls{x}{\mathvalnil}\right\}\\
+     & \mathprogramsy{dells(*x)} \{  \\
+     &\quad \mathprogramsy{if\left(*x = NULL\right)\ return\ 0;} % \onslide<2->{\structure{\{\objsym{emp}\}}}
+   \\
+     &\quad   \mathprogramsy{else \{}  % \onslide<3->{\structure{\{ \mathprogramsy{x} \mapsto \left(y, z\right) * \objsym{tree}\left(y\right) * \objsym{tree} \left(z\right)\}}}
+   \\
+     &\qquad  \mathprogramsy{n := x.next;}  % \onslide<4->{\structure{\{ \mathprogramsy{x} \mapsto \left(\mathprogramsy{l}, \mathprogramsy{r}\right) * \objsym{tree} \left( \mathprogramsy{l} \right) * \objsym{tree} \left( \mathprogramsy{r} \right)\}}} 
+   \\
+     &\qquad  \mathprogramsy{dells(n);}  % \onslide<5->{\structure{\{ \mathprogramsy{x} \mapsto \left(\mathprogramsy{l}, \mathprogramsy{r}\right) * \objsym{emp} * \objsym{tree}\left( \mathprogramsy{r} \right)\} }}
+   \\
+      &\qquad  \mathprogramsy{free(x);}   % \onslide<7->{\structure{\{\objsym{emp} * \objsym{emp} * \objsym{emp}\}}}
+   \\
+      &\quad \mathprogramsy{\}} % \onslide<8->{\structure{\{\objsym{emp}\}}}
+   \\
+      &\mathprogramsy{\}} \left\{\mathemp\right\}
+  \end{align*}
+  
+  さて、本来であれば、このHoare Triple に対して証明図を
+  書くことでプログラムが「正しい」ことを
+  証明するのであるが、手間を省くために各行に
+  ヒープ領域の状態を表す論理式を書くことでそれに代える。
+  
+  最初のヒープ領域の状態が$\mathprls{x}{\mathvalnil}$
+  で表されるような状態であるとする。
+
+  プログラムの最初の行は$\mathprogramsy{*x}$が
+  $\mathprogramsy{NULL}$であるかどうかで
+  条件分岐するif文である。
+
+  $\mathprogramsy{*x}$が$\mathprogramsy{NULL}$
+  であるとき$\mathprls{x}{\mathvalnil}$定義から
+  ヒープ領域は$\left\{\mathemp\right\}$
+  という状態である。
+
+  そうでないならば、$\left\{ \mathprogramsy{x} \mathpointer{1} \left\langle y \right\rangle * \mathprls{y}{\mathvalnil} \right\}$という状態である。
+  \begin{align*}
+   &  \left\{\mathprls{x}{\mathvalnil}\right\}\\
+   & \mathprogramsy{dells(*x)} \{  \\
+   &\quad \mathprogramsy{if\left(*x = NULL\right)\ return\ 0;}\ \left\{\mathemp\right\}
+   \\
+     &\quad   \mathprogramsy{else \{}\  
+   \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle y \right\rangle * \mathprls{y}{\mathvalnil}  \right\} \\
+     &\qquad  \mathprogramsy{n := x.next;}  % \onslide<4->{\structure{\{ \mathprogramsy{x} \mapsto \left(\mathprogramsy{l}, \mathprogramsy{r}\right) * \objsym{tree} \left( \mathprogramsy{l} \right) * \objsym{tree} \left( \mathprogramsy{r} \right)\}}} 
+   \\
+     &\qquad  \mathprogramsy{dells(n);}  % \onslide<5->{\structure{\{ \mathprogramsy{x} \mapsto \left(\mathprogramsy{l}, \mathprogramsy{r}\right) * \objsym{emp} * \objsym{tree}\left( \mathprogramsy{r} \right)\} }}
+   \\
+      &\qquad  \mathprogramsy{free(x);}   % \onslide<7->{\structure{\{\objsym{emp} * \objsym{emp} * \objsym{emp}\}}}
+   \\
+      &\quad \mathprogramsy{\}} % \onslide<8->{\structure{\{\objsym{emp}\}}}
+   \\
+      &\mathprogramsy{\}} \left\{\mathemp\right\}
+  \end{align*}
+
+  $\mathprogramsy{*x}$が$\mathprogramsy{NULL}$
+  であるときヒープ領域の状態は
+  $\mathemp$になって
+  $\mathprogramsy{return}$されるので
+  これ以上変化しない。
+
+  $ \mathprogramsy{x} \mathpointer{1} \left\langle y \right\rangle * \mathprls{y}{\mathvalnil}$
+  という状態のとき、次の文は$\mathprogramsy{x}$
+  の指す先を$\mathprogramsy{n}$と置くというコマンド
+  である。つまり、
+  $\mathprogramsy{n}=y \land  \mathprogramsy{x} \mathpointer{1} \left\langle y \right\rangle * \mathprls{y}{\mathvalnil}$という状態である。
+  これは
+  $ \mathprogramsy{x} \mathpointer{1} \left\langle \mathprogramsy{n} \right\rangle * \mathprls{\mathprogramsy{n}}{\mathvalnil}$
+  と同値である。
+    \begin{align*}
+   &  \left\{\mathprls{x}{\mathvalnil}\right\}\\
+   & \mathprogramsy{dells(*x)} \{  \\
+   &\quad \mathprogramsy{if\left(*x = NULL\right)\ return\ 0;}\ \left\{\mathemp\right\}
+   \\
+     &\quad   \mathprogramsy{else \{}\  
+   \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle y \right\rangle * \mathprls{y}{\mathvalnil}  \right\} \\
+     &\qquad  \mathprogramsy{n := x.next;}\  \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle \mathprogramsy{n} \right\rangle * \mathprls{\mathprogramsy{n}}{\mathvalnil}  \right\} \\
+     &\qquad  \mathprogramsy{dells(n);}  % \onslide<5->{\structure{\{ \mathprogramsy{x} \mapsto \left(\mathprogramsy{l}, \mathprogramsy{r}\right) * \objsym{emp} * \objsym{tree}\left( \mathprogramsy{r} \right)\} }}
+   \\
+      &\qquad  \mathprogramsy{free(x);}   % \onslide<7->{\structure{\{\objsym{emp} * \objsym{emp} * \objsym{emp}\}}}
+   \\
+      &\quad \mathprogramsy{\}} % \onslide<8->{\structure{\{\objsym{emp}\}}}
+   \\
+      &\mathprogramsy{\}} \left\{\mathemp\right\}
+    \end{align*}
+  
+  次の行は再帰呼び出し$\mathprogramsy{dells(n);}$
+  である。
+  $\mathprogramsy{dells(*x)}$の仕様から
+  （正しく関数が書けていれば）
+  $\mathprls{\mathprogramsy{n}}{\mathvalnil}$を
+  $\mathemp$にするはずである。
+  \begin{align*}
+   &  \left\{\mathprls{x}{\mathvalnil}\right\}\\
+   & \mathprogramsy{dells(*x)} \{  \\
+   &\quad \mathprogramsy{if\left(*x = NULL\right)\ return\ 0;}\ \left\{\mathemp\right\}
+   \\
+     &\quad   \mathprogramsy{else \{}\  
+   \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle y \right\rangle * \mathprls{y}{\mathvalnil}  \right\} \\
+     &\qquad  \mathprogramsy{n := x.next;}\  \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle \mathprogramsy{n} \right\rangle * \mathprls{\mathprogramsy{n}}{\mathvalnil}  \right\} \\
+     &\qquad  \mathprogramsy{dells(n);}\ \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle \mathprogramsy{n} \right\rangle * \mathemp \right\} \\
+      &\qquad  \mathprogramsy{free(x);}   % \onslide<7->{\structure{\{\objsym{emp} * \objsym{emp} * \objsym{emp}\}}}
+   \\
+      &\quad \mathprogramsy{\}} % \onslide<8->{\structure{\{\objsym{emp}\}}}
+   \\
+      &\mathprogramsy{\}} \left\{\mathemp\right\}
+    \end{align*}
+
+  もし、$\mathprogramsy{dells(*x)}$が正しく
+  書けておらず
+  $\mathprls{\mathprogramsy{n}}{\mathvalnil}$を
+  $\mathemp$に出来ていないとするならばこのままヒープ領域
+  の変化を追いかけていけば、異常なことが起こるはずである。
+
+  最後の$\mathprogramsy{free(x);}$によって
+  $\mathprogramsy{x} \mathpointer{1} \left\langle \mathprogramsy{n} \right\rangle$
+  は$\mathemp$に変わる。
+  \begin{align*}
+   &  \left\{\mathprls{x}{\mathvalnil}\right\}\\
+   & \mathprogramsy{dells(*x)} \{  \\
+   &\quad \mathprogramsy{if\left(*x = NULL\right)\ return\ 0;}\ \left\{\mathemp\right\}
+   \\
+     &\quad   \mathprogramsy{else \{}\  
+   \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle y \right\rangle * \mathprls{y}{\mathvalnil}  \right\} \\
+     &\qquad  \mathprogramsy{n := x.next;}\  \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle \mathprogramsy{n} \right\rangle * \mathprls{\mathprogramsy{n}}{\mathvalnil}  \right\} \\
+     &\qquad  \mathprogramsy{dells(n);}\ \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle \mathprogramsy{n} \right\rangle * \mathemp \right\} \\
+      &\qquad  \mathprogramsy{free(x);}\ \left\{ \mathemp \right\} \\
+      &\quad \mathprogramsy{\}} \\
+      &\mathprogramsy{\}} \left\{\mathemp\right\}
+  \end{align*}
+  
+  以上のことから、if 文の分岐がどちらだったとしても
+  最後には$\left\{\mathemp\right\}$になることが
+  わかったので$\mathprogramsy{dells(*x)}$が正しく
+  書けていることがわかった。
+    \begin{align*}
+   &  \left\{\mathprls{x}{\mathvalnil}\right\}\\
+   & \mathprogramsy{dells(*x)} \{  \\
+   &\quad \mathprogramsy{if\left(*x = NULL\right)\ return\ 0;}\ \left\{\mathemp\right\}
+   \\
+     &\quad   \mathprogramsy{else \{}\  
+   \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle y \right\rangle * \mathprls{y}{\mathvalnil}  \right\} \\
+     &\qquad  \mathprogramsy{n := x.next;}\  \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle \mathprogramsy{n} \right\rangle * \mathprls{\mathprogramsy{n}}{\mathvalnil}  \right\} \\
+     &\qquad  \mathprogramsy{dells(n);}\ \left\{ \mathprogramsy{x} \mathpointer{1} \left\langle \mathprogramsy{n} \right\rangle * \mathemp \right\} \\
+      &\qquad  \mathprogramsy{free(x);}\ \left\{ \mathemp \right\} \\
+      &\quad \mathprogramsy{\}}\ \left\{ \mathemp \right\} \\
+      &\mathprogramsy{\}} \left\{\mathemp\right\}
+  \end{align*}
 
  \begin{thebibliography}{9}
   \bibitem{Brotherston2015} James Brotherston，
