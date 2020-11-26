@@ -1,14 +1,15 @@
 #LaTeX用MakeFile
-TARGET = SL.pdf
+MAINFILENAME = SL
+MAINFILE = $(MAINFILENAME).tex
+TARGET = $(MAINFILENAME).pdf
 LATEX = latexmk -c -gg -lualatex
-MAINFILE = SL
 SETTINGS = mysettings.sty
 
 .DEFAULT_GOAL = all
 
 .PHONY: all
 all: $(TARGET)
-$(TARGET): $(MAINFILE).ltx $(SECTIONFILES) $(SETTINGS)
+$(TARGET): $(MAINFILE) $(SETTINGS)
 	$(LATEX) $<
 	make clean
 

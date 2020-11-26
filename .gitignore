@@ -8,3 +8,4 @@ _yatexrc
 *.gz
 *.fdb_latexmk
 *.fls
+*.pdf
