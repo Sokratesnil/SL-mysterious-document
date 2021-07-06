@@ -10,7 +10,9 @@
  \section{分離論理とは}
 
  \textgtemph{分離論理(Separation Logic)}とは述語論理を\textgtemph{ヒープ領域}(平たく言えばメモリ)に言及
- できるように拡張した論理体系である．
+ できるように拡張した論理体系である\footnote{%
+ 「（ヒープ領域の）分離（を意味する論理記号の入った）論理」と読むと良いと思う．%
+ }．
  形式的には通常の述語論理(一階述語論理など)にメモリの状態を記述できるような述語記号
  とそれらを結合するための\textgtemph{分離結合子}\(*\)などを付け加えたものと捉えられる．
  
@@ -153,12 +155,12 @@ C言語のポインタ概念を知っている人に対して，分離論理の�
   s, h'  \models \psi \text{ implies } s, h * h' \models \vartheta \text{ for all } h' \perp h &\text{(if $\varphi \equiv \psi \mathmagicwand \vartheta$)} \\
 %%%%%%
   s, h \models \mathprls{t_1}{t_2} 
-  &\mathdefiffarrow 
-  s, h \models \mathemp \text{ or there esists $v \in \mathVal$ such that } & \\
+  &\mathdefiffarrow \text{ Either }
+  s, h \models t_{1}=t_{2}\land\mathemp \text{ or there esists $v \in \mathVal$ such that } & \\
   & \phantom{{}\mathdefiffarrow{}} s\left[x \mapsto v\right]，h \models t_1 \mathpointer{1} \left\langle x \right\rangle * \mathprls{x}{t_2} \text{ where $x$ is fresh} &\text{(if $\varphi \equiv \mathprls{t_1}{t_2} $)}\\
 %%%%%%
   s, h \models \mathprtree{t_1} 
-  &\mathdefiffarrow 
+  &\mathdefiffarrow \text{ Either }
   s, h \models \mathemp 
   \text{ or there esists $v_1$，$v_2 \in \mathVal$ such that } & \\
   & \phantom{{}\mathdefiffarrow{}} s\left[x \mapsto v_1, y \mapsto v_2 \right], h \models t_1 \mathpointer{2} \left\langle x , y \right\rangle * \mathprtree{x} * \mathprtree{y} &\\
@@ -172,7 +174,7 @@ C言語のポインタ概念を知っている人に対して，分離論理の�
  $s，h \models \mathemp$ の定義は$\mathemp$がヒープ領域のすべてのノードが
  空であるということに対応していることを表している．
 
- 若干誤解が起きそうなのが，
+ 誤解が起きそうなのが，
  $s, h \models t_0 \mathpointer{1} \left\langle t_1 \right\rangle$ 
  と 
  $s, h \models t_0 \mathpointer{2} \left\langle t_1, t_2 \right\rangle$ 
@@ -445,8 +447,8 @@ C言語のポインタ概念を知っている人に対して，分離論理の�
 
   本来は前節のような証明は証明図を書くことによって行うが推論規則の定義などが面倒だったので割愛した.
 
-  ここまでの話だといちいち手動で証明をやっているように見えるが、必ずしも手動でやる必要はなく，
-  証明を自動証明器などを用いて自動化することを目標として研究している人々も多い.
+  ここまでの話だといちいち手動で証明をやっているように見えるが、
+  こういった証明をコンピュータによって自動化することを目標として研究している人も多い.
 
   \begin{thebibliography}{9}
    \bibitem{Brotherston2015} James Brotherston，
