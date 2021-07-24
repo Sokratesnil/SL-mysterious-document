@@ -9,3 +9,4 @@ _yatexrc
 *.fdb_latexmk
 *.fls
 *.pdf
+*.yatexrc
